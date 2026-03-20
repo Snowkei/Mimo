@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 按年月分组
+const grouped = new Map<string, typeof posts>();
+posts.forEach((post) => {
+  const key = post.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
+  if (!grouped.has(key)) grouped.set(key, []);
+  grouped.get(key)!.push(post);
+});
+---
+
+<BaseLayout title="归档">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <h1 class="text-3xl font-bold mb-2">归档</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-10">共 {posts.length} 篇文章</p>
+
+    <div class="relative">
+      <!-- Timeline line -->
+      <div class="absolute left-4 sm:left-6 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
+
+      {[...grouped.entries()].map(([month, monthPosts]) => (
+        <div class="mb-10">
+          <div class="relative flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300 z-10 shrink-0">
+              {monthPosts.length}
+            </div>
+            <h2 class="text-lg font-semibold">{month}</h2>
+          </div>
+          <div class="ml-12 sm:ml-16 space-y-3">
+            {monthPosts.map((post) => (
+              <a href={`/blog/${post.slug}`} class="group flex items-baseline gap-3">
+                <time class="text-sm text-gray-400 font-mono shrink-0 w-10" datetime={post.data.pubDate.toISOString()}>
+                  {post.data.pubDate.getDate().toString().padStart(2, '0')}
+                </time>
+                <span class="group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  {post.data.title}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

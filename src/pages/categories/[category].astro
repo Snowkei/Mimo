@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+  const categories = [...new Set(posts.map((p) => p.data.category))];
+  return categories.map((category) => ({
+    params: { category },
+    props: {
+      category,
+      posts: posts
+        .filter((p) => p.data.category === category)
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { category, posts } = Astro.props;
+---
+
+<BaseLayout title={`分类: ${category}`}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <div class="flex items-center gap-3 mb-8">
+      <a href="/categories" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← 全部分类</a>
+    </div>
+    <h1 class="text-3xl font-bold mb-8">📁 {category}</h1>
+    <div class="space-y-4">
+      {posts.map((post) => (
+        <a href={`/blog/${post.slug}`} class="post-card block group">
+          <article class="flex items-baseline gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+            <time class="text-sm text-gray-400 font-mono shrink-0" datetime={post.data.pubDate.toISOString()}>
+              {post.data.pubDate.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+            </time>
+            <h2 class="font-medium group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+              {post.data.title}
+            </h2>
+          </article>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

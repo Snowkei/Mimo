@@ -1,0 +1,104 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+// 获取相关文章（同分类或同标签）
+const allPosts = (await getCollection('blog')).filter((p) => !p.data.draft && p.slug !== post.slug);
+const relatedPosts = allPosts
+  .filter((p) =>
+    p.data.category === post.data.category ||
+    p.data.tags.some((t) => post.data.tags.includes(t))
+  )
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const formattedDate = post.data.pubDate.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const updatedDate = post.data.updatedDate?.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} type="article">
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-3 mb-4 text-sm text-gray-500 dark:text-gray-400">
+        <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
+        {updatedDate && (
+          <span class="text-gray-300 dark:text-gray-600">·</span>
+          <span>更新于 {updatedDate}</span>
+        )}
+        <span class="text-gray-300 dark:text-gray-600">·</span>
+        <a href={`/categories/${post.data.category}`} class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+          {post.data.category}
+        </a>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">{post.data.title}</h1>
+      {post.data.description && (
+        <p class="text-lg text-gray-600 dark:text-gray-400">{post.data.description}</p>
+      )}
+      {post.data.heroImage && (
+        <img
+          src={post.data.heroImage}
+          alt={post.data.title}
+          class="w-full rounded-xl mt-6 shadow-lg"
+          loading="lazy"
+        />
+      )}
+    </header>
+
+    <!-- Content -->
+    <div class="prose prose-lg dark:prose-invert max-w-none">
+      <Content />
+    </div>
+
+    <!-- Tags -->
+    <div class="flex flex-wrap gap-2 mt-10 pt-6 border-t border-gray-200 dark:border-gray-800">
+      {post.data.tags.map((tag) => (
+        <a
+          href={`/tags/${tag}`}
+          class="text-sm px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+        >
+          #{tag}
+        </a>
+      ))}
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex justify-between mt-10 pt-6 border-t border-gray-200 dark:border-gray-800 text-sm">
+      <a href="/blog" class="text-primary-600 dark:text-primary-400 hover:underline">← 返回文章列表</a>
+    </nav>
+
+    <!-- Related Posts -->
+    {relatedPosts.length > 0 && (
+      <section class="mt-12">
+        <h2 class="text-lg font-semibold mb-4">相关文章</h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {relatedPosts.map((p) => (
+            <a href={`/blog/${p.slug}`} class="post-card block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700">
+              <h3 class="font-medium mb-1 line-clamp-1">{p.data.title}</h3>
+              <time class="text-xs text-gray-400">{p.data.pubDate.toLocaleDateString('zh-CN')}</time>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </article>
+</BaseLayout>

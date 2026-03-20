@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="关于">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <h1 class="text-3xl font-bold mb-8">关于</h1>
+
+    <div class="prose prose-lg dark:prose-invert max-w-none">
+      <p>你好！欢迎来到我的博客 👋</p>
+
+      <p>这里是我记录想法、分享知识、探索技术的地方。</p>
+
+      <h2>关于这个博客</h2>
+      <ul>
+        <li>使用 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 构建</li>
+        <li>部署在 <a href="https://pages.cloudflare.com" target="_blank" rel="noopener">Cloudflare Pages</a></li>
+        <li>图床使用 <a href="https://www.cloudflare.com/developer-platform/products/r2/" target="_blank" rel="noopener">Cloudflare R2</a></li>
+        <li>支持深色模式 🌙</li>
+        <li>完全响应式设计 📱</li>
+      </ul>
+
+      <h2>技术栈</h2>
+      <table>
+        <thead>
+          <tr><th>类型</th><th>技术</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>框架</td><td>Astro 5</td></tr>
+          <tr><td>样式</td><td>Tailwind CSS 3</td></tr>
+          <tr><td>部署</td><td>Cloudflare Pages</td></tr>
+          <tr><td>图床</td><td>R2 / S3 / WebDAV</td></tr>
+          <tr><td>内容</td><td>Markdown + MDX</td></tr>
+          <tr><td>语法高亮</td><td>Shiki</td></tr>
+        </tbody>
+      </table>
+
+      <h2>联系方式</h2>
+      <p>你可以通过以下方式联系我：</p>
+      <ul>
+        <li>GitHub: <a href="https://github.com">你的 GitHub</a></li>
+        <li>Email: your@email.com</li>
+      </ul>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const latestPosts = posts.slice(0, 5);
+const pinnedPosts = posts.filter((p) => p.data.pinned);
+---
+
+<BaseLayout title="首页">
+  <!-- Hero -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-12">
+    <div class="max-w-2xl">
+      <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+        欢迎来到<br />
+        <span class="text-primary-600 dark:text-primary-400">我的博客</span>
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">
+        记录想法，分享知识，探索技术的无限可能。
+      </p>
+      <div class="flex gap-3">
+        <a href="/blog" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
+          浏览文章
+        </a>
+        <a href="/about" class="px-5 py-2.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors">
+          关于我
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pinned Posts -->
+  {pinnedPosts.length > 0 && (
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 mb-12">
+      <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">📌 置顶</h2>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {pinnedPosts.map((post) => (
+          <a href={`/blog/${post.slug}`} class="post-card block p-5 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/50 dark:bg-primary-900/20">
+            <h3 class="font-semibold text-lg mb-1">{post.data.title}</h3>
+            {post.data.description && (
+              <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{post.data.description}</p>
+            )}
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Latest Posts -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">最新文章</h2>
+      <a href="/blog" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+        查看全部 →
+      </a>
+    </div>
+    <div class="space-y-6">
+      {latestPosts.map((post) => (
+        <a href={`/blog/${post.slug}`} class="post-card block group">
+          <article class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
+            <time class="text-sm text-gray-400 dark:text-gray-500 font-mono shrink-0 sm:w-24" datetime={post.data.pubDate.toISOString()}>
+              {post.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+            </time>
+            <div>
+              <h3 class="font-semibold text-lg group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                {post.data.title}
+              </h3>
+              {post.data.description && (
+                <p class="text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{post.data.description}</p>
+              )}
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                  {post.data.category}
+                </span>
+                {post.data.tags.slice(0, 3).map((tag) => (
+                  <span class="text-xs text-gray-400 dark:text-gray-500">#{tag}</span>
+                ))}
+              </div>
+            </div>
+          </article>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

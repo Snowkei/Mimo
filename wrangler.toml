@@ -1,0 +1,12 @@
+name = "my-blog"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "./dist"
+
+# 如果需要 R2 图床，取消注释并创建 bucket
+# [[r2_buckets]]
+# binding = "IMAGES"
+# bucket_name = "blog-images"
+
+[vars]
+# 公开的站点 URL
+SITE_URL = "https://your-domain.com"
