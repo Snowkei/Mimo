@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getConfigFromEnv, toUploadConfig } from '../utils/config';
+import { getConfigFromEnv, toUploadConfig } from '../../utils/config';
 
 export const prerender = false;
 
