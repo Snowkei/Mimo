@@ -1,0 +1,420 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="设置">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+    <h1 class="text-3xl font-bold mb-2">⚙️ 设置</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">管理博客的各项配置，所有数据仅保存在当前浏览器中。</p>
+
+    <!-- 顶部标签页 -->
+    <div class="flex gap-1 mb-8 border-b border-gray-200 dark:border-gray-700">
+      <button data-section="github" class="section-tab active-tab px-5 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600 dark:text-primary-400 -mb-px transition-colors">
+        🔑 GitHub
+      </button>
+      <button data-section="imagehost" class="section-tab px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 -mb-px transition-colors">
+        🖼️ 图床
+      </button>
+    </div>
+
+    <!-- ========== GitHub 配置 ========== -->
+    <section id="section-github" class="section-panel">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">配置 GitHub 后，可以在「写文章」页面直接提交 Markdown 文件到仓库。</p>
+
+      <div class="space-y-5">
+        <!-- Token -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Personal Access Token *</label>
+          <input id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxx"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          <div class="mt-1.5 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p><strong>如何获取：</strong></p>
+            <p>1. 打开 <a href="https://github.com/settings/tokens?type=beta" target="_blank" class="text-primary-500 hover:underline">GitHub → Settings → Developer settings → Fine-grained tokens</a></p>
+            <p>2. 点击「Generate new token」，选择 Only select repositories，勾选你的博客仓库</p>
+            <p>3. Repository permissions 中将 <strong>Contents</strong> 设为 <strong>Read and write</strong></p>
+            <p>4. 生成后复制 Token（只显示一次）</p>
+          </div>
+        </div>
+
+        <!-- Owner & Repo -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">仓库所有者 *</label>
+            <input id="gh-owner" type="text" placeholder="Snowkei"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">GitHub 用户名，即仓库地址 <code class="text-primary-500">github.com/<strong>用户名</strong>/仓库名</code> 中的用户名</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">仓库名 *</label>
+            <input id="gh-repo" type="text" placeholder="Mimo"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">仓库地址 <code class="text-primary-500">github.com/用户名/<strong>仓库名</strong></code> 中的仓库名</p>
+          </div>
+        </div>
+
+        <!-- 分支 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">部署分支</label>
+          <input id="gh-branch" type="text" placeholder="main" value="main"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">文章提交到哪个分支，默认 <code>main</code>。如果你的 Cloudflare Pages 从其他分支部署，改成对应分支名</p>
+        </div>
+
+        <!-- 文章目录 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">文章目录</label>
+          <input id="gh-content-dir" type="text" placeholder="src/content/blog/" value="src/content/blog/"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Markdown 文章存储的目录路径，与 Astro content collection 配置一致</p>
+        </div>
+      </div>
+
+      <div class="mt-6 flex gap-3">
+        <button id="save-github" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+          💾 保存 GitHub 配置
+        </button>
+      </div>
+      <div id="github-status" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+    </section>
+
+    <!-- ========== 图床配置 ========== -->
+    <section id="section-imagehost" class="section-panel hidden">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">配置图床后端后，可以在图床页面上传图片并获取 Markdown 链接。</p>
+
+      <!-- 图床类型选择 -->
+      <div class="grid grid-cols-3 gap-3 mb-8">
+        <button
+          class="tab-btn active px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium text-sm transition-all"
+          data-tab="r2"
+        >
+          ☁️ Cloudflare R2
+        </button>
+        <button
+          class="tab-btn px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium text-sm transition-all"
+          data-tab="s3"
+        >
+          🪣 S3 兼容
+        </button>
+        <button
+          class="tab-btn px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium text-sm transition-all"
+          data-tab="webdav"
+        >
+          📂 WebDAV
+        </button>
+      </div>
+
+      <!-- R2 配置 -->
+      <div id="config-r2" class="config-panel">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Account ID *</label>
+            <input id="r2-account-id" type="text" placeholder="a1b2c3d4e5f6..."
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">打开 <a href="https://dash.cloudflare.com" target="_blank" class="text-primary-500 hover:underline">Cloudflare Dashboard</a>，右侧边栏即可看到 Account ID</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Access Key ID *</label>
+            <input id="r2-access-key" type="text" placeholder="a1b2c3..."
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Cloudflare Dashboard → R2 Object Storage → Manage R2 API Tokens → Create API Token，生成后复制 Access Key ID</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Secret Access Key *</label>
+            <input id="r2-secret-key" type="password" placeholder="••••••••"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">创建 API Token 时显示的 Secret Access Key，只显示一次，请妥善保存</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Bucket 名称 *</label>
+            <input id="r2-bucket" type="text" placeholder="my-blog-images"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">R2 中创建的存储桶名称。如果还没有，先在 R2 Object Storage → Create bucket 创建一个</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">自定义域名（可选）</label>
+            <input id="r2-domain" type="text" placeholder="https://img.your-domain.com"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">在 R2 Bucket → Settings → Public access 中绑定自定义域名后填入，图片 URL 会使用此域名</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">路径前缀</label>
+            <input id="r2-prefix" type="text" placeholder="blog/" value="blog/"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">上传文件在桶内的目录前缀，如 <code>blog/</code> 则图片存放在 <code>blog/</code> 目录下</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- S3 配置 -->
+      <div id="config-s3" class="config-panel hidden">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Endpoint *</label>
+            <input id="s3-endpoint" type="text" placeholder="https://s3.amazonaws.com"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              AWS S3 填 <code>https://s3.{'{region}'}.amazonaws.com</code>；MinIO 填服务地址如 <code>http://localhost:9000</code>；Backblaze B2 填 <code>https://s3.{'{region}'}.backblazeb2.com</code>
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Region *</label>
+            <input id="s3-region" type="text" placeholder="us-east-1" value="us-east-1"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">存储桶所在区域。AWS 在创建桶时选择；MinIO 可填 <code>us-east-1</code></p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Access Key ID *</label>
+            <input id="s3-access-key" type="text" placeholder="AKIA..."
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">AWS: IAM → Users → Security credentials → Create access key；MinIO: 左侧菜单 → Access Keys</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Secret Access Key *</label>
+            <input id="s3-secret-key" type="password" placeholder="••••••••"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">创建 Access Key 时生成的密钥，只显示一次</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Bucket 名称 *</label>
+            <input id="s3-bucket" type="text" placeholder="my-bucket"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">S3 兼容存储中的桶名称</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">自定义域名（可选）</label>
+            <input id="s3-domain" type="text" placeholder="https://cdn.your-domain.com"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">如果通过 CDN 或自定义域名访问桶中文件，填入基础 URL</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">路径前缀</label>
+            <input id="s3-prefix" type="text" placeholder="images/" value="images/"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          </div>
+          <div class="flex items-center gap-2">
+            <input id="s3-path-style" type="checkbox" class="rounded border-gray-300" />
+            <label for="s3-path-style" class="text-sm">使用 Path-style URL</label>
+            <p class="text-xs text-gray-400 dark:text-gray-500">MinIO、某些自建 S3 服务需要勾选此项（URL 格式为 <code>/bucket/key</code> 而非 <code>bucket.domain/key</code>）</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- WebDAV 配置 -->
+      <div id="config-webdav" class="config-panel hidden">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">服务器地址 *</label>
+            <input id="webdav-url" type="text" placeholder="https://dav.jianguoyun.com/dav/"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              坚果云填 <code>https://dav.jianguoyun.com/dav/</code>；NextCloud 填 <code>https://你的域名/remote.php/dav/files/用户名/</code>
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">用户名 *</label>
+            <input id="webdav-user" type="text" placeholder="your@email.com"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">WebDAV 服务的登录用户名。坚果云为注册邮箱</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">密码 / 应用密码 *</label>
+            <input id="webdav-pass" type="password" placeholder="••••••••"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              坚果云：账户设置 → 安全设置 → 第三方应用管理 → 添加应用，生成应用密码；NextCloud：设置 → 安全 → 创建应用密码
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">上传目录</label>
+            <input id="webdav-dir" type="text" placeholder="blog-images/" value="blog-images/"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">图片上传到 WebDAV 服务器的哪个目录下</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">访问域名（可选）</label>
+            <input id="webdav-domain" type="text" placeholder="https://你的域名/路径"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">如果 WebDAV 目录中的文件可以通过 HTTP 直接访问，填入基础 URL。这样上传后生成的图片链接可直接用于 Markdown</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex gap-3">
+        <button id="save-imagehost" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+          💾 保存图床配置
+        </button>
+      </div>
+      <div id="imagehost-status" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  // ========== 顶部 Section Tab 切换 ==========
+  document.querySelectorAll('.section-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.section-tab').forEach(b => {
+        b.classList.remove('active-tab', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400');
+        b.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+      });
+      btn.classList.add('active-tab', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400');
+      btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+
+      document.querySelectorAll('.section-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('section-' + btn.dataset.section).classList.remove('hidden');
+    });
+  });
+
+  // ========== 图床子 Tab 切换 ==========
+  let currentImageTab = 'r2';
+
+  function switchImageTab(tab) {
+    currentImageTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      const isActive = btn.dataset.tab === tab;
+      btn.classList.toggle('active', isActive);
+      btn.classList.toggle('border-primary-500', isActive);
+      btn.classList.toggle('bg-primary-50', isActive);
+      btn.classList.toggle('dark:bg-primary-900/30', isActive);
+      btn.classList.toggle('text-primary-700', isActive);
+      btn.classList.toggle('dark:text-primary-300', isActive);
+      btn.classList.toggle('border-gray-200', !isActive);
+      btn.classList.toggle('dark:border-gray-700', !isActive);
+    });
+    document.querySelectorAll('.config-panel').forEach(p => {
+      p.classList.toggle('hidden', p.id !== 'config-' + tab);
+    });
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchImageTab(btn.dataset.tab));
+  });
+
+  // ========== 状态提示 ==========
+  function showStatus(elId, message, type = 'info') {
+    const el = document.getElementById(elId);
+    el.classList.remove('hidden');
+    const colors = {
+      success: 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800',
+      error: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
+      info: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+    };
+    el.className = `mt-4 p-3 rounded-lg text-sm ${colors[type]}`;
+    el.textContent = message;
+    if (type !== 'error') setTimeout(() => el.classList.add('hidden'), 3000);
+  }
+
+  // ========== GitHub 配置 ==========
+  const GH_KEY = 'blog_github_config';
+
+  function loadGitHub() {
+    try {
+      const c = JSON.parse(localStorage.getItem(GH_KEY) || '{}');
+      document.getElementById('gh-token').value = c.token || '';
+      document.getElementById('gh-owner').value = c.owner || 'Snowkei';
+      document.getElementById('gh-repo').value = c.repo || 'Mimo';
+      document.getElementById('gh-branch').value = c.branch || 'main';
+      document.getElementById('gh-content-dir').value = c.contentDir || 'src/content/blog/';
+    } catch {}
+  }
+
+  document.getElementById('save-github').addEventListener('click', () => {
+    const token = document.getElementById('gh-token').value.trim();
+    const owner = document.getElementById('gh-owner').value.trim();
+    const repo = document.getElementById('gh-repo').value.trim();
+    if (!token || !owner || !repo) return showStatus('github-status', '请填写所有必填项（带 * 号）', 'error');
+    localStorage.setItem(GH_KEY, JSON.stringify({
+      token, owner, repo,
+      branch: document.getElementById('gh-branch').value.trim() || 'main',
+      contentDir: document.getElementById('gh-content-dir').value.trim() || 'src/content/blog/',
+    }));
+    showStatus('github-status', '✅ GitHub 配置已保存', 'success');
+  });
+
+  // ========== 图床配置 ==========
+  const IH_KEY = 'blog_image_host_config';
+
+  function loadImageHost() {
+    try {
+      const c = JSON.parse(localStorage.getItem(IH_KEY) || '{}');
+      if (!c.type) return;
+      switchImageTab(c.type);
+      if (c.type === 'r2') {
+        document.getElementById('r2-account-id').value = c.accountId || '';
+        document.getElementById('r2-access-key').value = c.accessKeyId || '';
+        document.getElementById('r2-secret-key').value = c.secretAccessKey || '';
+        document.getElementById('r2-bucket').value = c.bucket || '';
+        document.getElementById('r2-domain').value = c.domain || '';
+        document.getElementById('r2-prefix').value = c.prefix || 'blog/';
+      } else if (c.type === 's3') {
+        document.getElementById('s3-endpoint').value = c.endpoint || '';
+        document.getElementById('s3-region').value = c.region || 'us-east-1';
+        document.getElementById('s3-access-key').value = c.accessKeyId || '';
+        document.getElementById('s3-secret-key').value = c.secretAccessKey || '';
+        document.getElementById('s3-bucket').value = c.bucket || '';
+        document.getElementById('s3-domain').value = c.domain || '';
+        document.getElementById('s3-prefix').value = c.prefix || 'images/';
+        document.getElementById('s3-path-style').checked = c.pathStyle || false;
+      } else if (c.type === 'webdav') {
+        document.getElementById('webdav-url').value = c.url || '';
+        document.getElementById('webdav-user').value = c.username || '';
+        document.getElementById('webdav-pass').value = c.password || '';
+        document.getElementById('webdav-dir').value = c.directory || 'blog-images/';
+        document.getElementById('webdav-domain').value = c.domain || '';
+      }
+    } catch {}
+  }
+
+  document.getElementById('save-imagehost').addEventListener('click', () => {
+    let config;
+    if (currentImageTab === 'r2') {
+      config = {
+        type: 'r2',
+        accountId: document.getElementById('r2-account-id').value.trim(),
+        accessKeyId: document.getElementById('r2-access-key').value.trim(),
+        secretAccessKey: document.getElementById('r2-secret-key').value.trim(),
+        bucket: document.getElementById('r2-bucket').value.trim(),
+        domain: document.getElementById('r2-domain').value.trim(),
+        prefix: document.getElementById('r2-prefix').value.trim() || 'blog/',
+      };
+      if (!config.accountId || !config.accessKeyId || !config.secretAccessKey || !config.bucket)
+        return showStatus('imagehost-status', '请填写所有必填项（带 * 号）', 'error');
+    } else if (currentImageTab === 's3') {
+      config = {
+        type: 's3',
+        endpoint: document.getElementById('s3-endpoint').value.trim(),
+        region: document.getElementById('s3-region').value.trim() || 'us-east-1',
+        accessKeyId: document.getElementById('s3-access-key').value.trim(),
+        secretAccessKey: document.getElementById('s3-secret-key').value.trim(),
+        bucket: document.getElementById('s3-bucket').value.trim(),
+        domain: document.getElementById('s3-domain').value.trim(),
+        prefix: document.getElementById('s3-prefix').value.trim() || 'images/',
+        pathStyle: document.getElementById('s3-path-style').checked,
+      };
+      if (!config.endpoint || !config.accessKeyId || !config.secretAccessKey || !config.bucket)
+        return showStatus('imagehost-status', '请填写所有必填项（带 * 号）', 'error');
+    } else {
+      config = {
+        type: 'webdav',
+        url: document.getElementById('webdav-url').value.trim(),
+        username: document.getElementById('webdav-user').value.trim(),
+        password: document.getElementById('webdav-pass').value.trim(),
+        directory: document.getElementById('webdav-dir').value.trim() || 'blog-images/',
+        domain: document.getElementById('webdav-domain').value.trim(),
+      };
+      if (!config.url || !config.username || !config.password)
+        return showStatus('imagehost-status', '请填写所有必填项（带 * 号）', 'error');
+    }
+    localStorage.setItem(IH_KEY, JSON.stringify(config));
+    showStatus('imagehost-status', '✅ 图床配置已保存', 'success');
+  });
+
+  // ========== URL hash 定位 ==========
+  if (window.location.hash === '#imagehost') {
+    document.querySelector('[data-section="imagehost"]').click();
+  }
+
+  // ========== 初始化 ==========
+  loadGitHub();
+  loadImageHost();
+</script>
