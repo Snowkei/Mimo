@@ -5,9 +5,7 @@ import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   output: 'static',
-  adapter: cloudflare({
-    mode: 'directory',
-  }),
+  adapter: cloudflare(),
   integrations: [
     tailwind(),
     sitemap(),
@@ -17,11 +15,6 @@ export default defineConfig({
     shikiConfig: {
       theme: 'github-dark',
       wrap: true,
-    },
-  },
-  vite: {
-    define: {
-      'import.meta.env.PUBLIC_SITE_URL': JSON.stringify('https://your-domain.com'),
     },
   },
 });

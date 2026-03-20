@@ -27,7 +27,7 @@ const { tag, posts } = Astro.props;
     <h1 class="text-3xl font-bold mb-8">#{tag}</h1>
     <div class="space-y-4">
       {posts.map((post) => (
-        <a href={`/blog/${post.slug}`} class="post-card block group">
+        <a href={`/blog/${post.slug}`} class="post-card block group" key={post.slug}>
           <article class="flex items-baseline gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
             <time class="text-sm text-gray-400 font-mono shrink-0" datetime={post.data.pubDate.toISOString()}>
               {post.data.pubDate.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}

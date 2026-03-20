@@ -75,6 +75,7 @@ const updatedDate = post.data.updatedDate?.toLocaleDateString('zh-CN', {
         <a
           href={`/tags/${tag}`}
           class="text-sm px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+          key={tag}
         >
           #{tag}
         </a>
@@ -92,7 +93,7 @@ const updatedDate = post.data.updatedDate?.toLocaleDateString('zh-CN', {
         <h2 class="text-lg font-semibold mb-4">相关文章</h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {relatedPosts.map((p) => (
-            <a href={`/blog/${p.slug}`} class="post-card block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700">
+            <a href={`/blog/${p.slug}`} class="post-card block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700" key={p.slug}>
               <h3 class="font-medium mb-1 line-clamp-1">{p.data.title}</h3>
               <time class="text-xs text-gray-400">{p.data.pubDate.toLocaleDateString('zh-CN')}</time>
             </a>

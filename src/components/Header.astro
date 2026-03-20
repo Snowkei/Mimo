@@ -106,7 +106,11 @@ const currentPath = Astro.url.pathname;
   });
 
   // Mobile menu
-  document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
-    document.getElementById('mobile-menu')?.classList.toggle('hidden');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobileBtn = document.getElementById('mobile-menu-btn');
+  mobileBtn?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
+  // 点击菜单链接后自动关闭
+  mobileMenu?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => mobileMenu?.classList.add('hidden'));
   });
 </script>

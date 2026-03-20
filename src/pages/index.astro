@@ -76,7 +76,7 @@ const pinnedPosts = posts.filter((p) => p.data.pinned);
                   {post.data.category}
                 </span>
                 {post.data.tags.slice(0, 3).map((tag) => (
-                  <span class="text-xs text-gray-400 dark:text-gray-500">#{tag}</span>
+                  <span class="text-xs text-gray-400 dark:text-gray-500" key={tag}>#{tag}</span>
                 ))}
               </div>
             </div>

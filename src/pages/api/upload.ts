@@ -4,9 +4,11 @@ export const prerender = false;
 
 // 生成唯一文件名
 function generateFilename(originalName: string): string {
-  const ext = originalName.split('.').pop() || 'png';
+  // 只保留安全的扩展名
+  const rawExt = originalName.split('.').pop()?.toLowerCase() || 'png';
+  const ext = /^[a-z0-9]+$/.test(rawExt) ? rawExt : 'png';
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 8);
+  const random = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
   return `${timestamp}-${random}.${ext}`;
 }
 
@@ -50,8 +52,7 @@ async function uploadToS3(file: File, config: any): Promise<{ url: string }> {
   const now = new Date();
   const dateStamp = now.toISOString().replace(/[:-]|\.\d{3}/g, '').substring(0, 8);
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '').substring(0, 15) + 'Z';
-
-  const service = config.type === 'r2' ? 's3' : 's3';
+  const service = 's3';
 
   // Canonical request
   const canonicalUri = `/${bucket}/${key}`;
@@ -200,6 +201,24 @@ async function getSignatureKey(secretKey: string, dateStamp: string, region: str
   return kSigning;
 }
 
+// ============ 配置校验 ============
+function validateConfig(config: Record<string, any>): string | null {
+  if (config.type === 'r2') {
+    for (const key of ['accountId', 'accessKeyId', 'secretAccessKey', 'bucket']) {
+      if (!config[key]) return key;
+    }
+  } else if (config.type === 's3') {
+    for (const key of ['endpoint', 'accessKeyId', 'secretAccessKey', 'bucket']) {
+      if (!config[key]) return key;
+    }
+  } else if (config.type === 'webdav') {
+    for (const key of ['url', 'username', 'password']) {
+      if (!config[key]) return key;
+    }
+  }
+  return null;
+}
+
 // ============ API Handler ============
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -237,19 +256,39 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const config = JSON.parse(configStr);
+    let config: Record<string, any>;
+    try {
+      config = JSON.parse(configStr);
+    } catch {
+      return new Response(JSON.stringify({ error: '配置格式错误' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 验证配置类型
+    if (!['r2', 's3', 'webdav'].includes(config.type)) {
+      return new Response(JSON.stringify({ error: '不支持的图床类型' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 验证必填字段
+    const missing = validateConfig(config);
+    if (missing) {
+      return new Response(JSON.stringify({ error: `配置缺少: ${missing}` }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     let result: { url: string };
 
     if (config.type === 'r2' || config.type === 's3') {
       result = await uploadToS3(file, config);
-    } else if (config.type === 'webdav') {
-      result = await uploadToWebDAV(file, config);
     } else {
-      return new Response(JSON.stringify({ error: '不支持的图床类型' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      result = await uploadToWebDAV(file, config);
     }
 
     return new Response(JSON.stringify(result), {
