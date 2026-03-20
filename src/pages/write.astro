@@ -1,0 +1,469 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="写文章">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <h1 class="text-3xl font-bold mb-2">✍️ 写文章</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">在线编写并发布 Markdown 文章到博客。</p>
+
+    <!-- GitHub 配置 -->
+    <div id="github-config" class="mb-8 p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">🔑 GitHub 配置</h2>
+        <span id="config-badge" class="hidden text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">已配置</span>
+      </div>
+      <div id="config-form" class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">Personal Access Token</label>
+          <input id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxx"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          <p class="text-xs text-gray-400 mt-1">需要 repo 权限的 GitHub PAT，用于提交文件</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">仓库所有者</label>
+            <input id="gh-owner" type="text" placeholder="Snowkei"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">仓库名</label>
+            <input id="gh-repo" type="text" placeholder="Mimo"
+              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button id="save-gh-config" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+            保存配置
+          </button>
+          <button id="toggle-config" class="hidden px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">
+            修改配置
+          </button>
+        </div>
+      </div>
+      <div id="config-collapsed" class="hidden text-sm text-gray-500 dark:text-gray-400">
+        已连接到 <span id="repo-display" class="font-mono font-medium text-gray-700 dark:text-gray-300"></span>
+        <button id="edit-config" class="ml-2 text-primary-600 dark:text-primary-400 hover:underline">修改</button>
+      </div>
+    </div>
+
+    <!-- 文章表单 -->
+    <div id="editor-section">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- 标题 -->
+        <div class="lg:col-span-2">
+          <label class="block text-sm font-medium mb-1">文章标题 *</label>
+          <input id="post-title" type="text" placeholder="输入文章标题"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-lg font-medium" />
+        </div>
+        <!-- 分类 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">分类</label>
+          <input id="post-category" type="text" placeholder="未分类"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- 描述 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">描述（SEO）</label>
+          <input id="post-description" type="text" placeholder="简短的文章描述，用于搜索引擎"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+        </div>
+        <!-- 标签 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">标签（逗号分隔）</label>
+          <input id="post-tags" type="text" placeholder="标签1, 标签2, 标签3"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- 发布日期 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">发布日期</label>
+          <input id="post-date" type="date"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+        </div>
+        <!-- 封面图 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">封面图 URL（可选）</label>
+          <input id="post-hero" type="text" placeholder="https://..."
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+        </div>
+        <!-- 选项 -->
+        <div class="flex items-end gap-6 pb-2.5">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="post-draft" type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            <span class="text-sm font-medium">草稿</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="post-pinned" type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            <span class="text-sm font-medium">置顶</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Markdown 编辑器 -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-sm font-medium">正文内容 *</label>
+          <div class="flex items-center gap-1">
+            <button data-action="bold" class="toolbar-btn" title="粗体"><b>B</b></button>
+            <button data-action="italic" class="toolbar-btn" title="斜体"><i>I</i></button>
+            <button data-action="heading" class="toolbar-btn" title="标题">H</button>
+            <button data-action="link" class="toolbar-btn" title="链接">🔗</button>
+            <button data-action="image" class="toolbar-btn" title="图片">🖼️</button>
+            <button data-action="code" class="toolbar-btn" title="代码块">&lt;/&gt;</button>
+            <button data-action="quote" class="toolbar-btn" title="引用">❝</button>
+            <button data-action="list" class="toolbar-btn" title="列表">☰</button>
+            <span class="mx-2 text-gray-300 dark:text-gray-600">|</span>
+            <button id="toggle-preview" class="toolbar-btn text-xs" title="预览">预览</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-0">
+          <textarea id="post-content" rows="20" placeholder="在这里编写 Markdown 内容..."
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-mono text-sm resize-y leading-relaxed"></textarea>
+          <div id="preview-panel" class="hidden w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-auto max-h-[500px] prose prose-sm dark:prose-invert">
+          </div>
+        </div>
+      </div>
+
+      <!-- 文件名预览 -->
+      <div class="mb-6 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          文件路径：<code id="file-path-preview" class="font-mono text-primary-600 dark:text-primary-400">src/content/blog/your-title.md</code>
+        </p>
+      </div>
+
+      <!-- 提交信息 -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-1">Commit 信息</label>
+        <input id="commit-msg" type="text" placeholder="Add: 文章标题"
+          class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm" />
+      </div>
+
+      <!-- 发布按钮 -->
+      <div class="flex items-center gap-3">
+        <button id="publish-btn" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          发布文章
+        </button>
+        <button id="save-draft-btn" class="px-6 py-3 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors">
+          保存为草稿
+        </button>
+      </div>
+
+      <!-- 状态提示 -->
+      <div id="publish-status" class="hidden mt-4 p-4 rounded-lg text-sm"></div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .toolbar-btn {
+    @apply px-2 py-1 rounded text-sm text-gray-500 dark:text-gray-400
+           hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200
+           transition-colors cursor-pointer;
+  }
+</style>
+
+<script is:inline>
+  // ========== GitHub 配置管理 ==========
+  const GH_CONFIG_KEY = 'blog_github_config';
+
+  function getGHConfig() {
+    try { return JSON.parse(localStorage.getItem(GH_CONFIG_KEY) || '{}'); }
+    catch { return {}; }
+  }
+
+  function saveGHConfig(config) {
+    localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(config));
+  }
+
+  function loadGHConfig() {
+    const config = getGHConfig();
+    if (config.token && config.owner && config.repo) {
+      showConfigCollapsed(config);
+    } else {
+      // 预填默认值
+      document.getElementById('gh-owner').value = config.owner || 'Snowkei';
+      document.getElementById('gh-repo').value = config.repo || 'Mimo';
+      if (config.token) document.getElementById('gh-token').value = config.token;
+    }
+  }
+
+  function showConfigCollapsed(config) {
+    document.getElementById('config-form').classList.add('hidden');
+    document.getElementById('config-collapsed').classList.remove('hidden');
+    document.getElementById('config-badge').classList.remove('hidden');
+    document.getElementById('repo-display').textContent = `${config.owner}/${config.repo}`;
+  }
+
+  function showConfigForm() {
+    document.getElementById('config-form').classList.remove('hidden');
+    document.getElementById('config-collapsed').classList.add('hidden');
+    document.getElementById('config-badge').classList.add('hidden');
+    const config = getGHConfig();
+    document.getElementById('gh-token').value = config.token || '';
+    document.getElementById('gh-owner').value = config.owner || 'Snowkei';
+    document.getElementById('gh-repo').value = config.repo || 'Mimo';
+  }
+
+  document.getElementById('save-gh-config').addEventListener('click', () => {
+    const token = document.getElementById('gh-token').value.trim();
+    const owner = document.getElementById('gh-owner').value.trim();
+    const repo = document.getElementById('gh-repo').value.trim();
+    if (!token || !owner || !repo) return showStatus('请填写所有 GitHub 配置项', 'error');
+    saveGHConfig({ token, owner, repo });
+    showConfigCollapsed({ token, owner, repo });
+    showStatus('✅ GitHub 配置已保存', 'success');
+  });
+
+  document.getElementById('edit-config')?.addEventListener('click', showConfigForm);
+  document.getElementById('toggle-config')?.addEventListener('click', showConfigForm);
+
+  // ========== 文件名生成 ==========
+  function slugify(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af -]/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'untitled';
+  }
+
+  function updateFilePath() {
+    const title = document.getElementById('post-title').value.trim();
+    const slug = slugify(title);
+    document.getElementById('file-path-preview').textContent = `src/content/blog/${slug}.md`;
+    // 自动生成 commit message
+    const commitInput = document.getElementById('commit-msg');
+    if (!commitInput.dataset.manual) {
+      commitInput.value = title ? `Add: ${title}` : '';
+    }
+  }
+
+  document.getElementById('post-title').addEventListener('input', updateFilePath);
+  document.getElementById('commit-msg').addEventListener('input', (e) => {
+    e.target.dataset.manual = '1';
+  });
+
+  // 设置默认日期为今天
+  document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
+
+  // ========== Markdown 工具栏 ==========
+  const textarea = document.getElementById('post-content');
+
+  function wrapSelection(before, after) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selected = text.slice(start, end) || '文本';
+    textarea.value = text.slice(0, start) + before + selected + after + text.slice(end);
+    textarea.focus();
+    textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+  }
+
+  function insertAtCursor(text) {
+    const start = textarea.selectionStart;
+    const val = textarea.value;
+    textarea.value = val.slice(0, start) + text + val.slice(start);
+    textarea.focus();
+    textarea.setSelectionRange(start + text.length, start + text.length);
+  }
+
+  document.querySelectorAll('.toolbar-btn[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      switch(action) {
+        case 'bold': wrapSelection('**', '**'); break;
+        case 'italic': wrapSelection('*', '*'); break;
+        case 'heading': insertAtCursor('\n## 标题\n'); break;
+        case 'link': wrapSelection('[', '](https://url)'); break;
+        case 'image': insertAtCursor('\n![图片描述](https://url)\n'); break;
+        case 'code': insertAtCursor('\n```\n代码\n```\n'); break;
+        case 'quote': insertAtCursor('\n> 引用内容\n'); break;
+        case 'list': insertAtCursor('\n- 列表项\n'); break;
+      }
+    });
+  });
+
+  // ========== 预览 ==========
+  let previewMode = false;
+
+  document.getElementById('toggle-preview').addEventListener('click', () => {
+    previewMode = !previewMode;
+    const editor = document.getElementById('post-content');
+    const preview = document.getElementById('preview-panel');
+    const btn = document.getElementById('toggle-preview');
+
+    if (previewMode) {
+      editor.classList.add('hidden');
+      preview.classList.remove('hidden');
+      btn.textContent = '编辑';
+      // 简单的 Markdown 转 HTML 预览
+      preview.innerHTML = simpleMarkdown(editor.value);
+    } else {
+      editor.classList.remove('hidden');
+      preview.classList.add('hidden');
+      btn.textContent = '预览';
+    }
+  });
+
+  function simpleMarkdown(md) {
+    return md
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/\n{2,}/g, '</p><p>')
+      .replace(/^(.+)$/gm, (m) => m.startsWith('<') ? m : `<p>${m}</p>`)
+      .replace(/<li>/g, '<ul><li>').replace(/<\/li>(?!\s*<li>)/g, '</li></ul>')
+      .replace(/<\/ul>\s*<ul>/g, '');
+  }
+
+  // ========== 构建 Markdown 文件 ==========
+  function buildMarkdownContent() {
+    const title = document.getElementById('post-title').value.trim();
+    const description = document.getElementById('post-description').value.trim();
+    const date = document.getElementById('post-date').value;
+    const category = document.getElementById('post-category').value.trim() || '未分类';
+    const tags = document.getElementById('post-tags').value.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+    const heroImage = document.getElementById('post-hero').value.trim();
+    const draft = document.getElementById('post-draft').checked;
+    const pinned = document.getElementById('post-pinned').checked;
+    const content = document.getElementById('post-content').value;
+
+    let frontmatter = '---\n';
+    frontmatter += `title: "${title}"\n`;
+    if (description) frontmatter += `description: "${description}"\n`;
+    frontmatter += `pubDate: ${date}\n`;
+    frontmatter += `category: "${category}"\n`;
+    if (tags.length) frontmatter += `tags: [${tags.map(t => `"${t}"`).join(', ')}]\n`;
+    if (heroImage) frontmatter += `heroImage: "${heroImage}"\n`;
+    frontmatter += `draft: ${draft}\n`;
+    frontmatter += `pinned: ${pinned}\n`;
+    frontmatter += '---\n\n';
+    frontmatter += content;
+
+    return frontmatter;
+  }
+
+  // ========== GitHub API ==========
+  async function publishToGitHub(isDraft) {
+    const config = getGHConfig();
+    if (!config.token || !config.owner || !config.repo) {
+      showStatus('请先配置 GitHub Token 和仓库信息', 'error');
+      return;
+    }
+
+    const title = document.getElementById('post-title').value.trim();
+    if (!title) return showStatus('请输入文章标题', 'error');
+    if (!document.getElementById('post-content').value.trim()) return showStatus('请输入文章内容', 'error');
+
+    if (isDraft) {
+      document.getElementById('post-draft').checked = true;
+    }
+
+    const slug = slugify(title);
+    const filePath = `src/content/blog/${slug}.md`;
+    const content = buildMarkdownContent();
+    const commitMsg = document.getElementById('commit-msg').value.trim() || `Add: ${title}`;
+
+    const btn = document.getElementById(isDraft ? 'save-draft-btn' : 'publish-btn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> 提交中...';
+
+    try {
+      // 先检查文件是否已存在（获取 SHA 用于更新）
+      let sha = null;
+      const checkResp = await fetch(
+        `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${filePath}`,
+        {
+          headers: {
+            'Authorization': `token ${config.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+          },
+        }
+      );
+      if (checkResp.ok) {
+        const existing = await checkResp.json();
+        sha = existing.sha;
+      }
+
+      // 创建或更新文件
+      const body = {
+        message: commitMsg,
+        content: btoa(unescape(encodeURIComponent(content))),
+        branch: 'main',
+      };
+      if (sha) body.sha = sha;
+
+      const resp = await fetch(
+        `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${filePath}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${config.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || `GitHub API 错误: ${resp.status}`);
+      }
+
+      const result = await resp.json();
+      const action = sha ? '更新' : '创建';
+      showStatus(
+        `✅ 文章${action}成功！文件: <a href="https://github.com/${config.owner}/${config.repo}/blob/main/${filePath}" target="_blank" class="underline">${filePath}</a>`,
+        'success'
+      );
+
+      // 如果不是草稿，提示等待部署
+      if (!isDraft) {
+        setTimeout(() => {
+          showStatus('🚀 文章已提交，等待 Cloudflare Pages 自动部署...', 'info');
+        }, 3000);
+      }
+    } catch (err) {
+      showStatus(`❌ 发布失败: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  document.getElementById('publish-btn').addEventListener('click', () => publishToGitHub(false));
+  document.getElementById('save-draft-btn').addEventListener('click', () => publishToGitHub(true));
+
+  // ========== 状态提示 ==========
+  function showStatus(message, type = 'info') {
+    const el = document.getElementById('publish-status');
+    el.classList.remove('hidden');
+    const colors = {
+      success: 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800',
+      error: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
+      info: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+    };
+    el.className = `mt-4 p-4 rounded-lg text-sm ${colors[type] || colors.info}`;
+    el.innerHTML = message;
+    if (type === 'info') {
+      setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+  }
+
+  // ========== 初始化 ==========
+  loadGHConfig();
+</script>
