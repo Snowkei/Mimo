@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { getConfigFromEnv, toUploadConfig } from '../utils/config';
 
 export const prerender = false;
 
@@ -220,7 +221,7 @@ function validateConfig(config: Record<string, any>): string | null {
 }
 
 // ============ API Handler ============
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -233,8 +234,30 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    if (!configStr) {
-      return new Response(JSON.stringify({ error: '缺少图床配置' }), {
+    // 优先从环境变量读取图床配置（Cloudflare Pages 部署）
+    let config: Record<string, any> | null = null;
+    const runtimeEnv = (locals as any)?.runtime?.env;
+    if (runtimeEnv) {
+      const envConfig = getConfigFromEnv(runtimeEnv);
+      if (envConfig?.imageHost?.type) {
+        config = toUploadConfig(envConfig.imageHost);
+      }
+    }
+
+    // 兜底：从请求参数读取（localStorage 方式）
+    if (!config && configStr) {
+      try {
+        config = JSON.parse(configStr);
+      } catch {
+        return new Response(JSON.stringify({ error: '配置格式错误' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    if (!config) {
+      return new Response(JSON.stringify({ error: '缺少图床配置：请在服务器设置环境变量或在页面中配置' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -251,16 +274,6 @@ export const POST: APIRoute = async ({ request }) => {
     // 仅允许图片
     if (!file.type.startsWith('image/')) {
       return new Response(JSON.stringify({ error: '只允许上传图片文件' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    let config: Record<string, any>;
-    try {
-      config = JSON.parse(configStr);
-    } catch {
-      return new Response(JSON.stringify({ error: '配置格式错误' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });

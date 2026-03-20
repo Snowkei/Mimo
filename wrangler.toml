@@ -2,5 +2,12 @@ name = "my-blog"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "./dist"
 
+# 非敏感配置（公开，可提交到仓库）
+# 敏感配置（token、secret）通过 deploy.sh 或 Cloudflare Dashboard 设置为 Secret
 [vars]
-SITE_URL = "https://your-domain.com"
+SITE_URL = ""
+GITHUB_OWNER = "Snowkei"
+GITHUB_REPO = "Mimo"
+GITHUB_BRANCH = "main"
+GITHUB_CONTENT_DIR = "src/content/blog/"
+IMAGE_HOST_TYPE = "r2"

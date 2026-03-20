@@ -1,0 +1,97 @@
+# ===========================================
+# Mimo 博客 - 自动部署到 Cloudflare Pages
+# ===========================================
+# 触发条件：push 到 main 分支
+# 需要在 GitHub 仓库 Settings → Secrets 中配置以下变量：
+#
+#   CLOUDFLARE_API_TOKEN  - Cloudflare API Token（需要 Pages 权限）
+#   CLOUDFLARE_ACCOUNT_ID - Cloudflare Account ID
+#
+# 可选（用于图床功能，按需配置）：
+#   GITHUB_TOKEN          - GitHub PAT（用于写文章功能）
+#   GITHUB_OWNER          - 仓库所有者
+#   GITHUB_REPO           - 仓库名
+#   R2_ACCOUNT_ID         - Cloudflare R2 Account ID
+#   R2_ACCESS_KEY_ID      - R2 API Token Access Key ID
+#   R2_SECRET_ACCESS_KEY  - R2 API Token Secret Access Key
+#   R2_BUCKET             - R2 Bucket 名称
+#   R2_DOMAIN             - 图床自定义域名
+
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          SITE_URL: ${{ secrets.SITE_URL || 'https://your-blog.pages.dev' }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME || 'my-blog' }}
+          directory: dist
+          # 可选：指定 gitHubToken 以启用 GitHub 部署预览
+          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set runtime secrets
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT: ${{ secrets.CLOUDFLARE_PROJECT_NAME || 'my-blog' }}
+        run: |
+          npx wrangler@latest login --api-token "$CF_API_TOKEN" 2>/dev/null || true
+
+          # 设置运行时环境变量（通过 Pages Secrets）
+          set_secret() {
+            local key="$1"
+            local val="$2"
+            if [ -n "$val" ]; then
+              echo "Setting $key..."
+              echo "$val" | npx wrangler@latest pages secret put "$key" \
+                --project-name "$CF_PROJECT" 2>/dev/null \
+              && echo "  ✓ $key set" \
+              || echo "  ⚠ $key skipped (may need manual setup)"
+            fi
+          }
+
+          set_secret "GITHUB_TOKEN"          "${{ secrets.GITHUB_TOKEN }}"
+          set_secret "GITHUB_OWNER"          "${{ secrets.GITHUB_OWNER }}"
+          set_secret "GITHUB_REPO"           "${{ secrets.GITHUB_REPO }}"
+          set_secret "GITHUB_BRANCH"         "${{ secrets.GITHUB_BRANCH }}"
+          set_secret "GITHUB_CONTENT_DIR"    "${{ secrets.GITHUB_CONTENT_DIR }}"
+          set_secret "IMAGE_HOST_TYPE"       "${{ secrets.IMAGE_HOST_TYPE }}"
+          set_secret "R2_ACCOUNT_ID"         "${{ secrets.R2_ACCOUNT_ID }}"
+          set_secret "R2_ACCESS_KEY_ID"      "${{ secrets.R2_ACCESS_KEY_ID }}"
+          set_secret "R2_SECRET_ACCESS_KEY"  "${{ secrets.R2_SECRET_ACCESS_KEY }}"
+          set_secret "R2_BUCKET"             "${{ secrets.R2_BUCKET }}"
+          set_secret "R2_DOMAIN"             "${{ secrets.R2_DOMAIN }}"
+          set_secret "R2_PREFIX"             "${{ secrets.R2_PREFIX }}"
+
+          echo "✅ Runtime secrets synced"

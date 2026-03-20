@@ -4,5 +4,7 @@ dist/
 .wrangler/
 .env
 .env.*
+!.env.example
+config.local.json
 *.log
 .DS_Store
