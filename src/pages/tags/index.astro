@@ -13,28 +13,21 @@ posts.forEach((post) => {
 });
 
 const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
-const maxCount = Math.max(...tags.map(([, c]) => c));
 ---
 
 <BaseLayout title="标签">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
     <h1 class="text-3xl font-bold mb-8">标签</h1>
-    <div class="flex flex-wrap gap-3">
-      {tags.map(([name, count]) => {
-        // 按文章数计算字号大小
-        const ratio = count / maxCount;
-        const size = 0.875 + ratio * 0.75; // 0.875rem ~ 1.625rem
-        return (
-          <a
-            href={`/tags/${name}`}
-            class="px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
-            style={`font-size: ${size}rem`}
-          >
-            #{name}
-            <span class="text-xs text-gray-400 dark:text-gray-500 ml-1">{count}</span>
-          </a>
-        );
-      })}
+    <div class="flex flex-wrap justify-center gap-3">
+      {tags.map(([name, count]) => (
+        <a
+          href={`/tags/${name}`}
+          class="inline-flex items-center px-4 py-2 rounded-full text-sm border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+        >
+          #{name}
+          <span class="text-xs text-gray-400 dark:text-gray-500 ml-1.5">{count}</span>
+        </a>
+      ))}
     </div>
   </div>
 </BaseLayout>
