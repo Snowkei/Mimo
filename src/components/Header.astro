@@ -1,13 +1,16 @@
 ---
-const navLinks = [
+const mainNavLinks = [
   { href: '/', label: '首页' },
   { href: '/blog', label: '文章' },
-  { href: '/write', label: '写文章' },
   { href: '/categories', label: '分类' },
   { href: '/tags', label: '标签' },
   { href: '/archive', label: '归档' },
-  { href: '/image-host', label: '图床' },
-  { href: '/about', label: '关于' },
+];
+
+const moreNavLinks = [
+  { href: '/write', label: '✍️ 写文章' },
+  { href: '/image-host', label: '🖼️ 图床' },
+  { href: '/about', label: '👤 关于' },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -22,7 +25,7 @@ const currentPath = Astro.url.pathname;
 
     <!-- Desktop Nav -->
     <div class="hidden sm:flex items-center gap-1">
-      {navLinks.map((link) => (
+      {mainNavLinks.map((link) => (
         <a
           href={link.href}
           class:list={[
@@ -38,7 +41,7 @@ const currentPath = Astro.url.pathname;
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1">
       <!-- RSS -->
       <a
         href="/rss.xml"
@@ -66,6 +69,39 @@ const currentPath = Astro.url.pathname;
         </svg>
       </button>
 
+      <!-- Settings Dropdown (Desktop) -->
+      <div class="relative hidden sm:block">
+        <button
+          id="settings-btn"
+          class="p-2 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          title="更多"
+          aria-label="更多"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </button>
+        <div
+          id="settings-dropdown"
+          class="hidden absolute right-0 mt-2 w-44 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1.5 overflow-hidden"
+        >
+          {moreNavLinks.map((link) => (
+            <a
+              href={link.href}
+              class:list={[
+                'block px-4 py-2.5 text-sm transition-colors',
+                currentPath.startsWith(link.href)
+                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
+              ]}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
       <!-- Mobile Menu -->
       <button
         id="mobile-menu-btn"
@@ -82,13 +118,27 @@ const currentPath = Astro.url.pathname;
   <!-- Mobile Menu Panel -->
   <div id="mobile-menu" class="hidden sm:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
     <div class="px-4 py-3 space-y-1">
-      {navLinks.map((link) => (
+      {mainNavLinks.map((link) => (
         <a
           href={link.href}
           class:list={[
             'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
             currentPath === link.href
               ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300'
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800',
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+      <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+      {moreNavLinks.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            'block px-3 py-2 rounded-lg text-sm transition-colors',
+            currentPath.startsWith(link.href)
+              ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-medium'
               : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800',
           ]}
         >
@@ -106,11 +156,26 @@ const currentPath = Astro.url.pathname;
     localStorage.theme = isDark ? 'dark' : 'light';
   });
 
+  // Settings dropdown
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsDropdown = document.getElementById('settings-dropdown');
+  settingsBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    settingsDropdown?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!settingsBtn?.contains(e.target) && !settingsDropdown?.contains(e.target)) {
+      settingsDropdown?.classList.add('hidden');
+    }
+  });
+  settingsDropdown?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => settingsDropdown?.classList.add('hidden'));
+  });
+
   // Mobile menu
   const mobileMenu = document.getElementById('mobile-menu');
   const mobileBtn = document.getElementById('mobile-menu-btn');
   mobileBtn?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
-  // 点击菜单链接后自动关闭
   mobileMenu?.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => mobileMenu?.classList.add('hidden'));
   });
