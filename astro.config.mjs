@@ -10,7 +10,7 @@ export default defineConfig({
     tailwind(),
     sitemap(),
   ],
-  site: 'https://your-domain.com', // 替换为你的域名
+  site: 'https://mimo-blog.pages.dev',
   markdown: {
     shikiConfig: {
       theme: 'github-dark',
