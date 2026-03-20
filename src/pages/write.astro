@@ -51,11 +51,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         <div>
           <label class="block text-sm font-medium mb-1">发布日期</label>
           <input id="post-date" type="date"
             class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">更新日期（可选）</label>
+          <input id="post-updated" type="date"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" />
+          <p class="text-xs text-gray-400 mt-1">修改文章时填入，会在文章页显示"更新于"</p>
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">封面图 URL（可选）</label>
@@ -254,6 +260,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const title = document.getElementById('post-title').value.trim();
     const description = document.getElementById('post-description').value.trim();
     const date = document.getElementById('post-date').value;
+    const updatedDate = document.getElementById('post-updated').value;
     const category = document.getElementById('post-category').value.trim() || '未分类';
     const tags = document.getElementById('post-tags').value.split(/[,，]/).map(t => t.trim()).filter(Boolean);
     const heroImage = document.getElementById('post-hero').value.trim();
@@ -265,6 +272,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     fm += `title: "${title}"\n`;
     if (description) fm += `description: "${description}"\n`;
     fm += `pubDate: ${date}\n`;
+    if (updatedDate) fm += `updatedDate: ${updatedDate}\n`;
     fm += `category: "${category}"\n`;
     if (tags.length) fm += `tags: [${tags.map(t => `"${t}"`).join(', ')}]\n`;
     if (heroImage) fm += `heroImage: "${heroImage}"\n`;

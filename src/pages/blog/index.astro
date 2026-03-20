@@ -1,23 +1,20 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { getReadingTime } from '../../utils';
 
 const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-const POSTS_PER_PAGE = 10;
-const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
-const currentPage = 1;
-const currentPosts = posts.slice(0, POSTS_PER_PAGE);
 ---
 
 <BaseLayout title="文章列表">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-    <h1 class="text-3xl font-bold mb-8">文章</h1>
+    <h1 class="text-3xl font-bold mb-2">文章</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">共 {posts.length} 篇文章</p>
 
     <div class="space-y-8">
-      {currentPosts.map((post) => (
+      {posts.map((post) => (
         <a href={`/blog/${post.slug}`} class="post-card block group">
           <article class="p-5 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
             <div class="flex items-center gap-3 mb-2">
@@ -27,6 +24,9 @@ const currentPosts = posts.slice(0, POSTS_PER_PAGE);
               <span class="text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300">
                 {post.data.category}
               </span>
+              {post.body && (
+                <span class="text-xs text-gray-400 dark:text-gray-500">{getReadingTime(post.body)}</span>
+              )}
             </div>
             <h2 class="text-xl font-semibold group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-2">
               {post.data.title}
@@ -43,24 +43,5 @@ const currentPosts = posts.slice(0, POSTS_PER_PAGE);
         </a>
       ))}
     </div>
-
-    <!-- Pagination -->
-    {totalPages > 1 && (
-      <nav class="flex justify-center gap-2 mt-10" aria-label="分页">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <a
-            href={page === 1 ? '/blog' : `/blog/page/${page}`}
-            class:list={[
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-              page === currentPage
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
-            ]}
-          >
-            {page}
-          </a>
-        ))}
-      </nav>
-    )}
   </div>
 </BaseLayout>
