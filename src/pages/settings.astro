@@ -9,7 +9,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <!-- 顶部标签页 -->
     <div class="flex gap-1 mb-8 border-b border-gray-200 dark:border-gray-700">
-      <button data-section="github" class="section-tab active-tab px-5 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600 dark:text-primary-400 -mb-px transition-colors">
+      <button data-section="configfile" class="section-tab active-tab px-5 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600 dark:text-primary-400 -mb-px transition-colors">
+        📁 配置文件
+      </button>
+      <button data-section="github" class="section-tab px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 -mb-px transition-colors">
         🔑 GitHub
       </button>
       <button data-section="imagehost" class="section-tab px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 -mb-px transition-colors">
@@ -17,8 +20,69 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </button>
     </div>
 
+    <!-- ========== 配置文件 ========== -->
+    <section id="section-configfile" class="section-panel">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">通过配置文件 <code class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">config.json</code> 统一管理所有设置，方便迁移和备份。</p>
+
+      <!-- 配置文件格式说明 -->
+      <div class="mb-8 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+        <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">📋 config.json 格式说明</h3>
+        <pre class="text-xs leading-relaxed overflow-x-auto text-gray-600 dark:text-gray-400 font-mono"><code set:html={`{
+  "github": {
+    "token": "ghp_xxxx",
+    "owner": "你的用户名",
+    "repo": "仓库名",
+    "branch": "main",
+    "contentDir": "src/content/blog/"
+  },
+  "imageHost": {
+    "type": "r2",
+    "accountId": "",
+    "accessKeyId": "",
+    "secretAccessKey": "",
+    "bucket": "",
+    "domain": "",
+    "prefix": "blog/",
+    "endpoint": "",
+    "region": "us-east-1",
+    "pathStyle": false,
+    "url": "",
+    "username": "",
+    "password": "",
+    "directory": "blog-images/"
+  }
+}`}></code></pre>
+        <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">💡 只需填写你使用的图床类型的字段，其他留空即可。将此文件放在项目根目录。</p>
+      </div>
+
+      <!-- 配置文件状态 -->
+      <div id="config-file-status" class="mb-6 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div class="flex items-center gap-3">
+          <div id="config-file-indicator" class="w-3 h-3 rounded-full bg-gray-300"></div>
+          <span id="config-file-status-text" class="text-sm text-gray-500 dark:text-gray-400">检测中...</span>
+        </div>
+      </div>
+
+      <!-- 隐藏的文件选择器 -->
+      <input id="config-file-input" type="file" accept=".json" class="hidden" />
+
+      <!-- 操作按钮 -->
+      <div class="flex flex-wrap gap-3">
+        <button id="btn-import-config" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          📥 从配置文件导入
+        </button>
+        <button id="btn-export-config" class="px-5 py-2.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          📤 导出为 config.json
+        </button>
+        <button id="btn-check-config" class="px-5 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm transition-colors flex items-center gap-2">
+          🔄 刷新状态
+        </button>
+      </div>
+      <div id="configfile-status" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+    </section>
+
     <!-- ========== GitHub 配置 ========== -->
-    <section id="section-github" class="section-panel">
+    <section id="section-github" class="section-panel hidden">
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">配置 GitHub 后，可以在「写文章」页面直接提交 Markdown 文件到仓库。</p>
 
       <div class="space-y-5">
@@ -439,10 +503,177 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     showStatus('imagehost-status', '✅ 图床配置已保存', 'success');
   });
 
+  // ========== 配置文件 检测状态 ==========
+  async function checkConfigFile() {
+    const indicator = document.getElementById('config-file-indicator');
+    const statusText = document.getElementById('config-file-status-text');
+    try {
+      const resp = await fetch('/api/config');
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.exists && data.config) {
+          indicator.className = 'w-3 h-3 rounded-full bg-green-500';
+          const parts = [];
+          if (data.config.github?.token) parts.push(`GitHub: ${data.config.github.owner}/${data.config.github.repo}`);
+          if (data.config.imageHost?.type) parts.push(`图床: ${data.config.imageHost.type.toUpperCase()}`);
+          statusText.textContent = parts.length ? `✅ 配置文件已就绪 — ${parts.join(' | ')}` : '✅ 配置文件存在（内容为空）';
+        }
+      } else {
+        indicator.className = 'w-3 h-3 rounded-full bg-amber-500';
+        statusText.textContent = '⚠️ config.json 不存在，请在项目根目录创建';
+      }
+    } catch {
+      indicator.className = 'w-3 h-3 rounded-full bg-red-500';
+      statusText.textContent = '❌ 无法读取配置文件';
+    }
+  }
+
+  // ========== 将配置应用到表单 ==========
+  function applyConfigToForm(config) {
+    // 导入 GitHub 配置
+    if (config.github) {
+      document.getElementById('gh-token').value = config.github.token || '';
+      document.getElementById('gh-owner').value = config.github.owner || '';
+      document.getElementById('gh-repo').value = config.github.repo || '';
+      document.getElementById('gh-branch').value = config.github.branch || 'main';
+      document.getElementById('gh-content-dir').value = config.github.contentDir || 'src/content/blog/';
+      localStorage.setItem(GH_KEY, JSON.stringify(config.github));
+    }
+
+    // 导入图床配置
+    if (config.imageHost) {
+      const ih = config.imageHost;
+      if (ih.type) switchImageTab(ih.type);
+
+      document.getElementById('r2-account-id').value = ih.accountId || '';
+      document.getElementById('r2-access-key').value = ih.accessKeyId || '';
+      document.getElementById('r2-secret-key').value = ih.secretAccessKey || '';
+      document.getElementById('r2-bucket').value = ih.bucket || '';
+      document.getElementById('r2-domain').value = ih.domain || '';
+      document.getElementById('r2-prefix').value = ih.prefix || 'blog/';
+
+      document.getElementById('s3-endpoint').value = ih.endpoint || '';
+      document.getElementById('s3-region').value = ih.region || 'us-east-1';
+      document.getElementById('s3-access-key').value = ih.accessKeyId || '';
+      document.getElementById('s3-secret-key').value = ih.secretAccessKey || '';
+      document.getElementById('s3-bucket').value = ih.bucket || '';
+      document.getElementById('s3-domain').value = ih.domain || '';
+      document.getElementById('s3-prefix').value = ih.prefix || 'images/';
+      document.getElementById('s3-path-style').checked = ih.pathStyle || false;
+
+      document.getElementById('webdav-url').value = ih.url || '';
+      document.getElementById('webdav-user').value = ih.username || '';
+      document.getElementById('webdav-pass').value = ih.password || '';
+      document.getElementById('webdav-dir').value = ih.directory || 'blog-images/';
+      document.getElementById('webdav-domain').value = ih.domain || '';
+
+      localStorage.setItem(IH_KEY, JSON.stringify(ih));
+    }
+  }
+
+  // ========== 收集表单配置 ==========
+  function collectFormConfig() {
+    const ghConfig = {
+      token: document.getElementById('gh-token').value.trim(),
+      owner: document.getElementById('gh-owner').value.trim(),
+      repo: document.getElementById('gh-repo').value.trim(),
+      branch: document.getElementById('gh-branch').value.trim() || 'main',
+      contentDir: document.getElementById('gh-content-dir').value.trim() || 'src/content/blog/',
+    };
+
+    let imageHost = { type: currentImageTab };
+    if (currentImageTab === 'r2') {
+      imageHost = {
+        type: 'r2',
+        accountId: document.getElementById('r2-account-id').value.trim(),
+        accessKeyId: document.getElementById('r2-access-key').value.trim(),
+        secretAccessKey: document.getElementById('r2-secret-key').value.trim(),
+        bucket: document.getElementById('r2-bucket').value.trim(),
+        domain: document.getElementById('r2-domain').value.trim(),
+        prefix: document.getElementById('r2-prefix').value.trim() || 'blog/',
+      };
+    } else if (currentImageTab === 's3') {
+      imageHost = {
+        type: 's3',
+        endpoint: document.getElementById('s3-endpoint').value.trim(),
+        region: document.getElementById('s3-region').value.trim() || 'us-east-1',
+        accessKeyId: document.getElementById('s3-access-key').value.trim(),
+        secretAccessKey: document.getElementById('s3-secret-key').value.trim(),
+        bucket: document.getElementById('s3-bucket').value.trim(),
+        domain: document.getElementById('s3-domain').value.trim(),
+        prefix: document.getElementById('s3-prefix').value.trim() || 'images/',
+        pathStyle: document.getElementById('s3-path-style').checked,
+      };
+    } else if (currentImageTab === 'webdav') {
+      imageHost = {
+        type: 'webdav',
+        url: document.getElementById('webdav-url').value.trim(),
+        username: document.getElementById('webdav-user').value.trim(),
+        password: document.getElementById('webdav-pass').value.trim(),
+        directory: document.getElementById('webdav-dir').value.trim() || 'blog-images/',
+        domain: document.getElementById('webdav-domain').value.trim(),
+      };
+    }
+
+    return { github: ghConfig, imageHost };
+  }
+
+  // ========== 从配置文件导入到表单 ==========
+  // 点击按钮 → 触发文件选择器
+  document.getElementById('btn-import-config').addEventListener('click', () => {
+    document.getElementById('config-file-input').click();
+  });
+
+  // 选择文件后读取并导入
+  document.getElementById('config-file-input').addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const config = JSON.parse(ev.target.result);
+        if (!config.github && !config.imageHost) {
+          return showStatus('configfile-status', '配置文件格式不正确，缺少 github 或 imageHost 字段', 'error');
+        }
+        applyConfigToForm(config);
+        showStatus('configfile-status', '✅ 已从 config.json 导入所有配置，同时保存到了浏览器本地', 'success');
+        checkConfigFile();
+      } catch (err) {
+        showStatus('configfile-status', `JSON 解析失败: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+    // 重置 input 以便重复选择同一文件
+    e.target.value = '';
+  });
+
+  // ========== 导出为 config.json 文件下载 ==========
+  document.getElementById('btn-export-config').addEventListener('click', () => {
+    const config = collectFormConfig();
+    const jsonStr = JSON.stringify(config, null, 2) + '\n';
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'config.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus('configfile-status', '✅ config.json 已下载，请放到项目根目录', 'success');
+  });
+
+  // ========== 刷新配置文件状态 ==========
+  document.getElementById('btn-check-config').addEventListener('click', checkConfigFile);
+
   // ========== URL hash 定位 ==========
   if (window.location.hash === '#imagehost') {
     document.querySelector('[data-section="imagehost"]').click();
+  } else if (window.location.hash === '#github') {
+    document.querySelector('[data-section="github"]').click();
   }
+  // 默认显示配置文件 tab（已在 HTML 中设为 active）
 
   // ========== 图片上传 ==========
   const IH_CONFIG_KEY2 = 'blog_image_host_config';
@@ -511,4 +742,5 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   // ========== 初始化 ==========
   loadGitHub();
   loadImageHost();
+  checkConfigFile();
 </script>
