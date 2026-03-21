@@ -8,26 +8,62 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p class="text-gray-500 dark:text-gray-400 mb-8">管理博客的各项配置，所有数据仅保存在当前浏览器中。</p>
 
     <!-- 顶部标签页 -->
-    <div class="flex gap-1 mb-8 border-b border-gray-200 dark:border-gray-700">
-      <button data-section="configfile" class="section-tab active-tab px-5 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600 dark:text-primary-400 -mb-px transition-colors">
+    <div class="flex gap-2 mb-8">
+      <button data-section="configfile" class="section-tab active-tab px-5 py-2.5 text-sm font-medium rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 transition-all">
         📁 配置文件
       </button>
-      <button data-section="github" class="section-tab px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 -mb-px transition-colors">
+      <button data-section="github" class="section-tab px-5 py-2.5 text-sm font-medium rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
         🔑 GitHub
       </button>
-      <button data-section="imagehost" class="section-tab px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 -mb-px transition-colors">
+      <button data-section="imagehost" class="section-tab px-5 py-2.5 text-sm font-medium rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
         🖼️ 图床
       </button>
     </div>
 
     <!-- ========== 配置文件 ========== -->
     <section id="section-configfile" class="section-panel">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">通过配置文件 <code class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">config.json</code> 统一管理所有设置，方便迁移和备份。</p>
+      <!-- 状态卡片 -->
+      <div id="config-file-status" class="mb-6 p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div id="config-file-indicator" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg shrink-0">
+            📄
+          </div>
+          <div class="flex-1 min-w-0">
+            <p id="config-file-status-text" class="text-sm font-medium text-gray-700 dark:text-gray-300">检测中...</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">项目根目录下的 config.json</p>
+          </div>
+          <button id="btn-check-config" class="shrink-0 px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            🔄 刷新
+          </button>
+        </div>
+      </div>
 
-      <!-- 配置文件格式说明 -->
-      <div class="mb-8 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-        <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">📋 config.json 格式说明</h3>
-        <pre class="text-xs leading-relaxed overflow-x-auto text-gray-600 dark:text-gray-400 font-mono"><code set:html={`{
+      <!-- 操作按钮 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+        <button id="btn-import-config" class="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-900/10 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all group">
+          <div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">📥</div>
+          <div class="text-left">
+            <p class="text-sm font-semibold text-primary-700 dark:text-primary-300">从配置文件导入</p>
+            <p class="text-xs text-primary-500/70 dark:text-primary-400/70">选择 config.json 填入表单</p>
+          </div>
+        </button>
+        <button id="btn-export-config" class="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group">
+          <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">📤</div>
+          <div class="text-left">
+            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">导出为 config.json</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500">将当前表单下载为文件</p>
+          </div>
+        </button>
+      </div>
+
+      <!-- 格式说明（可折叠） -->
+      <details class="group">
+        <summary class="flex items-center gap-2 cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 select-none mb-3">
+          <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="font-medium">📋 config.json 格式参考</span>
+        </summary>
+        <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+          <pre class="text-xs leading-relaxed overflow-x-auto text-gray-600 dark:text-gray-400 font-mono"><code set:html={`{
   "site": { "url": "https://xxx.pages.dev" },
   "github": {
     "token": "ghp_xxxx",
@@ -55,38 +91,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   }
 }`}></code></pre>
-        <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">💡 只需填写你使用的图床类型的字段，其他留空即可。将此文件放在项目根目录。</p>
-      </div>
-
-      <!-- 配置文件状态 -->
-      <div id="config-file-status" class="mb-6 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div class="flex items-center gap-3">
-          <div id="config-file-indicator" class="w-3 h-3 rounded-full bg-gray-300"></div>
-          <span id="config-file-status-text" class="text-sm text-gray-500 dark:text-gray-400">检测中...</span>
+          <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">💡 只需填写你使用的图床类型的字段，其他留空即可</p>
         </div>
-      </div>
+      </details>
 
-      <!-- 隐藏的文件选择器 -->
-      <input id="config-file-input" type="file" accept=".json" class="hidden" />
-
-      <!-- 操作按钮 -->
-      <div class="flex flex-wrap gap-3">
-        <button id="btn-import-config" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-          📥 从配置文件导入
-        </button>
-        <button id="btn-export-config" class="px-5 py-2.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-          📤 导出为 config.json
-        </button>
-        <button id="btn-check-config" class="px-5 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm transition-colors flex items-center gap-2">
-          🔄 刷新状态
-        </button>
-      </div>
       <div id="configfile-status" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+      <input id="config-file-input" type="file" accept=".json" class="hidden" />
     </section>
 
     <!-- ========== GitHub 配置 ========== -->
     <section id="section-github" class="section-panel hidden">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">配置 GitHub 后，可以在「写文章」页面直接提交 Markdown 文件到仓库。</p>
+      <div class="flex items-start gap-3 mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50">
+        <span class="text-lg mt-0.5">💡</span>
+        <p class="text-sm text-blue-700 dark:text-blue-300">配置 GitHub 后，可以在「写文章」页面直接提交 Markdown 文件到仓库。</p>
+      </div>
 
       <div class="space-y-5">
         <!-- Token -->
@@ -146,27 +164,33 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <!-- ========== 图床配置 ========== -->
     <section id="section-imagehost" class="section-panel hidden">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">配置图床后端后，可以在图床页面上传图片并获取 Markdown 链接。</p>
+      <div class="flex items-start gap-3 mb-6 p-4 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/50">
+        <span class="text-lg mt-0.5">💡</span>
+        <p class="text-sm text-purple-700 dark:text-purple-300">配置图床后端后，可以在图床页面上传图片并获取 Markdown 链接。</p>
+      </div>
 
       <!-- 图床类型选择 -->
       <div class="grid grid-cols-3 gap-3 mb-8">
         <button
-          class="tab-btn active px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium text-sm transition-all"
+          class="tab-btn active flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium text-sm transition-all"
           data-tab="r2"
         >
-          ☁️ Cloudflare R2
+          <span class="text-2xl">☁️</span>
+          <span>Cloudflare R2</span>
         </button>
         <button
-          class="tab-btn px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium text-sm transition-all"
+          class="tab-btn flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium text-sm transition-all"
           data-tab="s3"
         >
-          🪣 S3 兼容
+          <span class="text-2xl">🪣</span>
+          <span>S3 兼容</span>
         </button>
         <button
-          class="tab-btn px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium text-sm transition-all"
+          class="tab-btn flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium text-sm transition-all"
           data-tab="webdav"
         >
-          📂 WebDAV
+          <span class="text-2xl">📂</span>
+          <span>WebDAV</span>
         </button>
       </div>
 
@@ -319,24 +343,27 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <div id="upload-zone" class="upload-zone mb-6">
           <div class="flex flex-col items-center gap-3">
-            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl">
-              📤
+            <div class="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+              <svg class="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
             </div>
-            <div>
-              <p class="font-medium">拖拽图片到这里</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">或点击选择文件（支持多选）</p>
+            <div class="text-center">
+              <p class="font-medium text-gray-700 dark:text-gray-300">拖拽图片到这里</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500 mt-0.5">或点击选择文件 · 支持多选 · 最大 10MB</p>
             </div>
             <input id="file-input" type="file" accept="image/*" multiple class="hidden" />
           </div>
         </div>
 
-        <div id="upload-progress" class="hidden mb-6">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-            <span class="text-sm">上传中...</span>
+        <div id="upload-progress" class="hidden mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">上传中...</span>
+            </div>
+            <span id="progress-text" class="text-xs text-gray-400">0%</span>
           </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div id="progress-bar" class="bg-primary-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div id="progress-bar" class="bg-gradient-to-r from-primary-500 to-primary-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
           </div>
         </div>
 
@@ -351,11 +378,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   document.querySelectorAll('.section-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.section-tab').forEach(b => {
-        b.classList.remove('active-tab', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400');
-        b.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+        b.classList.remove('active-tab', 'bg-primary-50', 'dark:bg-primary-900/30', 'text-primary-700', 'dark:text-primary-300', 'border-primary-200', 'dark:border-primary-800');
+        b.classList.add('bg-gray-50', 'dark:bg-gray-800/50', 'text-gray-500', 'dark:text-gray-400', 'border-transparent');
       });
-      btn.classList.add('active-tab', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400');
-      btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+      btn.classList.add('active-tab', 'bg-primary-50', 'dark:bg-primary-900/30', 'text-primary-700', 'dark:text-primary-300', 'border-primary-200', 'dark:border-primary-800');
+      btn.classList.remove('bg-gray-50', 'dark:bg-gray-800/50', 'text-gray-500', 'dark:text-gray-400', 'border-transparent');
 
       document.querySelectorAll('.section-panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('section-' + btn.dataset.section).classList.remove('hidden');
@@ -515,19 +542,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (resp.ok) {
         const data = await resp.json();
         if (data.exists && data.config) {
-          indicator.className = 'w-3 h-3 rounded-full bg-green-500';
+          indicator.textContent = '✅';
+          indicator.className = 'w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-lg shrink-0';
           const parts = [];
           if (data.config.github?.token) parts.push(`GitHub: ${data.config.github.owner}/${data.config.github.repo}`);
           if (data.config.imageHost?.type) parts.push(`图床: ${data.config.imageHost.type.toUpperCase()}`);
-          statusText.textContent = parts.length ? `✅ 配置文件已就绪 — ${parts.join(' | ')}` : '✅ 配置文件存在（内容为空）';
+          statusText.textContent = parts.length ? `配置已就绪 — ${parts.join(' · ')}` : '配置文件存在（内容为空）';
         }
       } else {
-        indicator.className = 'w-3 h-3 rounded-full bg-amber-500';
-        statusText.textContent = '⚠️ config.json 不存在，请在项目根目录创建';
+        indicator.textContent = '⚠️';
+        indicator.className = 'w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-lg shrink-0';
+        statusText.textContent = 'config.json 不存在，请在项目根目录创建';
       }
     } catch {
-      indicator.className = 'w-3 h-3 rounded-full bg-red-500';
-      statusText.textContent = '❌ 无法读取配置文件';
+      indicator.textContent = '❌';
+      indicator.className = 'w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-lg shrink-0';
+      statusText.textContent = '无法读取配置文件';
     }
   }
 
@@ -710,6 +740,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       progressBar.style.width = `${((i + 1) / files.length) * 100}%`;
+      document.getElementById('progress-text').textContent = `${Math.round(((i + 1) / files.length) * 100)}%`;
       try {
         const formData = new FormData();
         formData.append('file', file);
