@@ -28,6 +28,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="mb-8 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
         <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">📋 config.json 格式说明</h3>
         <pre class="text-xs leading-relaxed overflow-x-auto text-gray-600 dark:text-gray-400 font-mono"><code set:html={`{
+  "site": { "url": "https://xxx.pages.dev" },
   "github": {
     "token": "ghp_xxxx",
     "owner": "你的用户名",
@@ -37,19 +38,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   },
   "imageHost": {
     "type": "r2",
-    "accountId": "",
-    "accessKeyId": "",
-    "secretAccessKey": "",
-    "bucket": "",
-    "domain": "",
-    "prefix": "blog/",
-    "endpoint": "",
-    "region": "us-east-1",
-    "pathStyle": false,
-    "url": "",
-    "username": "",
-    "password": "",
-    "directory": "blog-images/"
+    "r2": {
+      "accountId": "", "accessKeyId": "",
+      "secretAccessKey": "", "bucket": "",
+      "domain": "", "prefix": "blog/"
+    },
+    "s3": {
+      "endpoint": "", "region": "us-east-1",
+      "accessKeyId": "", "secretAccessKey": "",
+      "bucket": "", "domain": "",
+      "prefix": "images/", "pathStyle": false
+    },
+    "webdav": {
+      "url": "", "username": "", "password": "",
+      "directory": "blog-images/", "domain": ""
+    }
   }
 }`}></code></pre>
         <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">💡 只需填写你使用的图床类型的字段，其他留空即可。将此文件放在项目根目录。</p>
@@ -540,34 +543,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       localStorage.setItem(GH_KEY, JSON.stringify(config.github));
     }
 
-    // 导入图床配置
+    // 导入图床配置（嵌套结构：imageHost.r2 / imageHost.s3 / imageHost.webdav）
     if (config.imageHost) {
       const ih = config.imageHost;
       if (ih.type) switchImageTab(ih.type);
 
-      document.getElementById('r2-account-id').value = ih.accountId || '';
-      document.getElementById('r2-access-key').value = ih.accessKeyId || '';
-      document.getElementById('r2-secret-key').value = ih.secretAccessKey || '';
-      document.getElementById('r2-bucket').value = ih.bucket || '';
-      document.getElementById('r2-domain').value = ih.domain || '';
-      document.getElementById('r2-prefix').value = ih.prefix || 'blog/';
+      // R2
+      const r2 = ih.r2 || {};
+      document.getElementById('r2-account-id').value = r2.accountId || '';
+      document.getElementById('r2-access-key').value = r2.accessKeyId || '';
+      document.getElementById('r2-secret-key').value = r2.secretAccessKey || '';
+      document.getElementById('r2-bucket').value = r2.bucket || '';
+      document.getElementById('r2-domain').value = r2.domain || '';
+      document.getElementById('r2-prefix').value = r2.prefix || 'blog/';
 
-      document.getElementById('s3-endpoint').value = ih.endpoint || '';
-      document.getElementById('s3-region').value = ih.region || 'us-east-1';
-      document.getElementById('s3-access-key').value = ih.accessKeyId || '';
-      document.getElementById('s3-secret-key').value = ih.secretAccessKey || '';
-      document.getElementById('s3-bucket').value = ih.bucket || '';
-      document.getElementById('s3-domain').value = ih.domain || '';
-      document.getElementById('s3-prefix').value = ih.prefix || 'images/';
-      document.getElementById('s3-path-style').checked = ih.pathStyle || false;
+      // S3
+      const s3 = ih.s3 || {};
+      document.getElementById('s3-endpoint').value = s3.endpoint || '';
+      document.getElementById('s3-region').value = s3.region || 'us-east-1';
+      document.getElementById('s3-access-key').value = s3.accessKeyId || '';
+      document.getElementById('s3-secret-key').value = s3.secretAccessKey || '';
+      document.getElementById('s3-bucket').value = s3.bucket || '';
+      document.getElementById('s3-domain').value = s3.domain || '';
+      document.getElementById('s3-prefix').value = s3.prefix || 'images/';
+      document.getElementById('s3-path-style').checked = s3.pathStyle || false;
 
-      document.getElementById('webdav-url').value = ih.url || '';
-      document.getElementById('webdav-user').value = ih.username || '';
-      document.getElementById('webdav-pass').value = ih.password || '';
-      document.getElementById('webdav-dir').value = ih.directory || 'blog-images/';
-      document.getElementById('webdav-domain').value = ih.domain || '';
+      // WebDAV
+      const wd = ih.webdav || {};
+      document.getElementById('webdav-url').value = wd.url || '';
+      document.getElementById('webdav-user').value = wd.username || '';
+      document.getElementById('webdav-pass').value = wd.password || '';
+      document.getElementById('webdav-dir').value = wd.directory || 'blog-images/';
+      document.getElementById('webdav-domain').value = wd.domain || '';
 
-      localStorage.setItem(IH_KEY, JSON.stringify(ih));
+      // localStorage 仍存当前激活类型的扁平配置（兼容现有逻辑）
+      const activeType = ih.type || 'r2';
+      const flatConfig = { type: activeType, ...(ih[activeType] || {}) };
+      localStorage.setItem(IH_KEY, JSON.stringify(flatConfig));
     }
   }
 
@@ -581,20 +593,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       contentDir: document.getElementById('gh-content-dir').value.trim() || 'src/content/blog/',
     };
 
-    let imageHost = { type: currentImageTab };
-    if (currentImageTab === 'r2') {
-      imageHost = {
-        type: 'r2',
+    // 嵌套结构，和 deploy.sh / config.example.json 保持一致
+    const imageHost = {
+      type: currentImageTab,
+      r2: {
         accountId: document.getElementById('r2-account-id').value.trim(),
         accessKeyId: document.getElementById('r2-access-key').value.trim(),
         secretAccessKey: document.getElementById('r2-secret-key').value.trim(),
         bucket: document.getElementById('r2-bucket').value.trim(),
         domain: document.getElementById('r2-domain').value.trim(),
         prefix: document.getElementById('r2-prefix').value.trim() || 'blog/',
-      };
-    } else if (currentImageTab === 's3') {
-      imageHost = {
-        type: 's3',
+      },
+      s3: {
         endpoint: document.getElementById('s3-endpoint').value.trim(),
         region: document.getElementById('s3-region').value.trim() || 'us-east-1',
         accessKeyId: document.getElementById('s3-access-key').value.trim(),
@@ -603,17 +613,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         domain: document.getElementById('s3-domain').value.trim(),
         prefix: document.getElementById('s3-prefix').value.trim() || 'images/',
         pathStyle: document.getElementById('s3-path-style').checked,
-      };
-    } else if (currentImageTab === 'webdav') {
-      imageHost = {
-        type: 'webdav',
+      },
+      webdav: {
         url: document.getElementById('webdav-url').value.trim(),
         username: document.getElementById('webdav-user').value.trim(),
         password: document.getElementById('webdav-pass').value.trim(),
         directory: document.getElementById('webdav-dir').value.trim() || 'blog-images/',
         domain: document.getElementById('webdav-domain').value.trim(),
-      };
-    }
+      },
+    };
 
     return { github: ghConfig, imageHost };
   }

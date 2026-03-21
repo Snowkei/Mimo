@@ -1,6 +1,9 @@
 {
+  "site": {
+    "url": "https://your-blog.pages.dev"
+  },
   "github": {
-    "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "token": "YOUR_GITHUB_PAT_HERE",
     "owner": "Snowkei",
     "repo": "Mimo",
     "branch": "main",
@@ -8,18 +11,30 @@
   },
   "imageHost": {
     "type": "r2",
-    "accountId": "",
-    "accessKeyId": "",
-    "secretAccessKey": "",
-    "bucket": "",
-    "domain": "",
-    "prefix": "blog/",
-    "endpoint": "",
-    "region": "us-east-1",
-    "pathStyle": false,
-    "url": "",
-    "username": "",
-    "password": "",
-    "directory": "blog-images/"
+    "r2": {
+      "accountId": "",
+      "accessKeyId": "",
+      "secretAccessKey": "",
+      "bucket": "",
+      "domain": "",
+      "prefix": "blog/"
+    },
+    "s3": {
+      "endpoint": "",
+      "region": "us-east-1",
+      "accessKeyId": "",
+      "secretAccessKey": "",
+      "bucket": "",
+      "domain": "",
+      "prefix": "images/",
+      "pathStyle": false
+    },
+    "webdav": {
+      "url": "",
+      "username": "",
+      "password": "",
+      "directory": "blog-images/",
+      "domain": ""
+    }
   }
 }
